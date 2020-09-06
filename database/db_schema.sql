@@ -65,6 +65,7 @@ create database workhorse;
 
   CREATE TABLE IF NOT EXISTS build_steps (
   	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    build_id int4,
     name varchar(255) NOT NULL,
     image varchar(255) NOT NULL,
   	status varchar(30) NULL,
@@ -78,3 +79,9 @@ create database workhorse;
     step_id int4,
     command text
   );
+
+  CREATE TABLE IF NOT EXISTS build_node_binding(
+    id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    build_id int4,
+    ip_address varchar(255)
+  )

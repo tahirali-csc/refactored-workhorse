@@ -1,9 +1,10 @@
-package main
+package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
-	"sync"
+	"net/http"
 
 	"github.com/r3labs/sse"
 	"github.com/workhorse/api"
@@ -27,17 +28,15 @@ func (b *Builds) Watch(url string, handler WatchHandler) error {
 	return err
 }
 
-func main() {
-	var wg sync.WaitGroup
-	wg.Add(1)
+func (b *Builds) BindToNode(binding api.BuildNodeBinding) {
+	client := http.Client{}
 
-	b := Builds{}
-	go func() {
-		b.Watch("http://localhost:8084/events", func(obj interface{}) {
-			build := obj.(*api.Build)
-			log.Println("Build::::", build)
-		})
-	}()
+	dt, _ := json.Marshal(binding)
 
-	wg.Wait()
+	res, err := client.Post("http://localhost:8081/buildbinding", "application/json", bytes.NewReader(dt))
+	log.Println(res)
+	if err != nil {
+		log.Println("Error", err)
+	}
+
 }

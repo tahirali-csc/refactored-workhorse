@@ -15,5 +15,7 @@ func main() {
 	buildServer := build.BuildController{}
 	//
 	http.HandleFunc("/build", buildServer.CreateBuild)
+	http.HandleFunc("/buildbinding", buildServer.BindToNode)
+
 	http.ListenAndServe("localhost:"+config.Server.Port, nil)
 }

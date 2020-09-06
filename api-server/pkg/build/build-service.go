@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -37,9 +38,6 @@ func (bs *BuildService) StartNewBuild(build api.Build) {
 
 	buildId := 0
 	tx.QueryRow(insertStmt, "Pending", build.ProjectId, time.Now()).Scan(&buildId)
-	// if row == nil {
-	// 	panic(row)
-	// }
 
 	for _, step := range build.Steps {
 		insertStmt1 := `
@@ -50,9 +48,6 @@ func (bs *BuildService) StartNewBuild(build api.Build) {
 
 		var buildStepId int
 		tx.QueryRow(insertStmt1, buildId, step.Name, step.Image, "Pending", time.Now()).Scan(&buildStepId)
-		// if row == nil {
-		// 	panic(row)
-		// }
 
 		for _, cmd := range step.Commands {
 			insertStmt2 := `
@@ -60,14 +55,39 @@ func (bs *BuildService) StartNewBuild(build api.Build) {
 			VALUES ($1, $2)
 			`
 
-			_ , err := tx.Exec(insertStmt2, buildStepId, cmd.Command)
+			_, err := tx.Exec(insertStmt2, buildStepId, cmd.Command)
 			if err != nil {
-				panic (err)
+				panic(err)
 			}
 		}
 
 	}
 
 	tx.Commit()
+
+}
+
+func (bs *BuildService) BindToNode(binding *api.BuildNodeBinding) {
+	config := config.GetAppConfig()
+	var conninfo string = fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable",
+		config.Database.Name, config.Database.User, config.Database.Password, config.Database.Host)
+
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	insertStmt := `
+	INSERT INTO build_node_binding (build_id, ip_address)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+
+	_, err = db.Exec(insertStmt, binding.BuildId, binding.IpAddress)
+	if err != nil {
+		log.Println(err)
+	}
 
 }

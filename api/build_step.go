@@ -4,6 +4,7 @@ import "time"
 
 type BuildStep struct {
 	Id        int
+	BuildId   int
 	Name      string `json:"name"`
 	Image     string `json:"image"`
 	Status    string

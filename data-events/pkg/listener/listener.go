@@ -19,7 +19,7 @@ func New() *DatabaseEventsListener {
 }
 
 func (listener *DatabaseEventsListener) Start() {
-	conninfo := "dbname=postgres user=dev password=dev host=localhost sslmode=disable"
+	conninfo := "dbname=workhorse user=dev password=dev host=localhost sslmode=disable"
 	db, err := sql.Open("postgres", conninfo)
 	defer db.Close()
 

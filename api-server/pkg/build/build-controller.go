@@ -44,6 +44,26 @@ func (bc *BuildController) CreateBuild(response http.ResponseWriter, request *ht
 	}
 }
 
+func (bc *BuildController) BindToNode(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "POST" {
+		buildService := BuildService{}
+
+		defer request.Body.Close()
+		body, err := ioutil.ReadAll(request.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		mp := &api.BuildNodeBinding{}
+		err = json.Unmarshal(body, mp)
+		if err != nil {
+			panic(err)
+		}
+
+		buildService.BindToNode(mp)
+	}
+}
+
 type buildInput struct {
 	ProjectID int64 `json:"projectId"`
 	Steps     []struct {
