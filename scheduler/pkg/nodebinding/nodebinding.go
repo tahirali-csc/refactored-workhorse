@@ -21,3 +21,18 @@ func BindBuildToNode(build *coreapi.Build) {
 	builds.BindToNode(nodeBinding)
 
 }
+
+func BindBuildStepToNode(step *coreapi.BuildStep) {
+
+	selectedHost := "localhost"
+
+	nodeBinding := coreapi.BuildStepNodeBinding{
+		IpAddress: selectedHost,
+		StepId:   step.Id,
+	}
+
+	builds := client.Builds{}
+	log.Println(builds)
+	builds.BindBuildStepToNode(nodeBinding)
+
+}

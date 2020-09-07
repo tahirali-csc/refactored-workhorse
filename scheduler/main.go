@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	"github.com/workhorse/scheduler/pkg/nodebinding"
@@ -21,6 +22,14 @@ func main() {
 			build := obj.(*coreapi.Build)
 			nodebinding.BindBuildToNode(build)
 			// log.Println("Build::::", build)
+		})
+	}()
+
+	go func() {
+		b.WatchSteps("http://localhost:8084/events", func(obj interface{}) {
+			buildStep := obj.(*coreapi.BuildStep)
+			log.Println("Build-Step:::", buildStep)
+			nodebinding.BindBuildStepToNode(buildStep)
 		})
 	}()
 

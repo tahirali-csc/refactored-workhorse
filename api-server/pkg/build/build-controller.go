@@ -64,6 +64,46 @@ func (bc *BuildController) BindToNode(response http.ResponseWriter, request *htt
 	}
 }
 
+func (bc *BuildController) UpdateBuildStepStatus(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "POST" {
+		buildService := BuildService{}
+
+		defer request.Body.Close()
+		body, err := ioutil.ReadAll(request.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		mp := &buildStepStatus{}
+		err = json.Unmarshal(body, mp)
+		if err != nil {
+			panic(err)
+		}
+
+		buildService.UpdateBuildStepStatus(mp.StepId, mp.Status)
+	}
+}
+
+func (bc *BuildController) BindingBuildStepToNode(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "POST" {
+		buildService := BuildService{}
+
+		defer request.Body.Close()
+		body, err := ioutil.ReadAll(request.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		mp := &api.BuildStepNodeBinding{}
+		err = json.Unmarshal(body, mp)
+		if err != nil {
+			panic(err)
+		}
+
+		buildService.BindBuildStepToNode(mp)
+	}
+}
+
 type buildInput struct {
 	ProjectID int64 `json:"projectId"`
 	Steps     []struct {
@@ -71,4 +111,9 @@ type buildInput struct {
 		Name     string   `json:"name"`
 		Commands []string `json:"commands"`
 	} `json:"steps"`
+}
+
+type buildStepStatus struct {
+	StepId int
+	Status string
 }

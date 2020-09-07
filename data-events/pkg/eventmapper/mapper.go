@@ -2,6 +2,7 @@ package eventmapper
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"gihtub.com/workhorse/data-events/pkg/listener"
@@ -37,7 +38,8 @@ func New(dbEventsListener *listener.DatabaseEventsListener) *DBEventToSSEStreamM
 
 func (mapper *DBEventToSSEStreamMapper) initEventToSSEMapping() {
 	mapper.tableStreamMap["build"] = eventMappingInfo{Stream: "build", Mapper: &BuildEventObjectMapper{}}
-	// mapper.tableStreamMap["build_jobs"] = eventMappingInfo{Stream: "build-jobs", Mapper: &BuildEventObjectMapper{}}
+	mapper.tableStreamMap["build_steps"] = eventMappingInfo{Stream: "build-steps", Mapper: &BuildStepEventObjectMapper{}}
+	mapper.tableStreamMap["build_step_node_binding"] = eventMappingInfo{Stream: "build-steps-node-binding", Mapper: &BuildStepNodeBindingEventObjectMapper{}}
 
 	for _, value := range mapper.tableStreamMap {
 		mapper.sseServer.CreateStream(value.Stream)
@@ -51,14 +53,16 @@ func (mapper *DBEventToSSEStreamMapper) WatchEvents() {
 			ei := &eventInfo{}
 			json.Unmarshal([]byte(event), ei)
 
-			// record, err := json.Marshal(ei.Data)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
+			//_, err := json.Marshal(ei.Data)
+			//if err != nil {
+			//	log.Fatal(err)
+			//}
+			log.Println(ei)
 
 			if eventStream, ok := mapper.tableStreamMap[ei.Table]; ok {
 				data := eventStream.Mapper.Map(ei.Data)
 
+				log.Println("I am publishing.....", eventStream)
 				mapper.sseServer.Publish(eventStream.Stream, &sse.Event{
 					Data: data,
 				})

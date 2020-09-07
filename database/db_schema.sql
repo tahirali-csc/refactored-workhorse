@@ -74,6 +74,16 @@ create database workhorse;
   	end_ts timestamp NULL
   );
 
+  drop trigger if exists build_steps_notify_event on build_steps;
+  create trigger build_steps_notify_event after
+    insert
+        or
+    delete
+        or
+    update
+        on
+        build_steps for each row execute function notify_event();
+
   CREATE TABLE IF NOT EXISTS build_steps_command (
   	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
     step_id int4,
@@ -85,3 +95,19 @@ create database workhorse;
     build_id int4,
     ip_address varchar(255)
   )
+
+  CREATE TABLE IF NOT EXISTS build_step_node_binding(
+    id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    step_id int4,
+    ip_address varchar(255)
+  )
+
+  drop trigger if exists build_step_node_binding_notify_event on build_step_node_binding;
+  create trigger build_step_node_binding_notify_event after
+    insert
+        or
+    delete
+        or
+    update
+        on
+        build_step_node_binding for each row execute function notify_event();

@@ -91,3 +91,53 @@ func (bs *BuildService) BindToNode(binding *api.BuildNodeBinding) {
 	}
 
 }
+
+func (bs *BuildService) UpdateBuildStepStatus(stepId int, status string) {
+	config := config.GetAppConfig()
+	var conninfo string = fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable",
+		config.Database.Name, config.Database.User, config.Database.Password, config.Database.Host)
+
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	updateStmt := `
+	UPDATE build_steps 
+	SET status=$2
+	WHERE id=$1
+	`
+
+	_, err = db.Exec(updateStmt, stepId, status)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
+
+func (bs *BuildService) BindBuildStepToNode(step *api.BuildStepNodeBinding) {
+	config := config.GetAppConfig()
+	var conninfo string = fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable",
+		config.Database.Name, config.Database.User, config.Database.Password, config.Database.Host)
+
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	updateStmt := `
+	INSERT INTO build_step_node_binding
+	(step_id, ip_address)
+	VALUES($1, $2)
+	`
+
+	_, err = db.Exec(updateStmt, step.StepId, step.IpAddress)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
