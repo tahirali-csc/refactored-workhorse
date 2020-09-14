@@ -111,3 +111,10 @@ create database workhorse;
     update
         on
         build_step_node_binding for each row execute function notify_event();
+
+
+  CREATE TABLE IF NOT EXISTS node_info(
+    id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    name varchar(255) unique,
+    last_heart_beat timestamp
+ )

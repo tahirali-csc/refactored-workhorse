@@ -6,9 +6,13 @@ replace github.com/workhorse/api => ../api/
 
 replace github.com/workhorse/client => ../client/
 
+replace github.com/workhorse/commons => ../commons/
+
 require github.com/workhorse/client v0.0.0
 
 require github.com/workhorse/api v0.0.0
+
+require github.com/workhorse/commons v0.0.0
 
 require (
 	github.com/containerd/containerd v1.4.0 // indirect
