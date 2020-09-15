@@ -114,7 +114,7 @@ create database workhorse;
 
 
   CREATE TABLE IF NOT EXISTS node_info(
-    id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     name varchar(255) unique,
     last_heart_beat timestamp
  )

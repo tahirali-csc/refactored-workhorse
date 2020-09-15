@@ -12,7 +12,15 @@ type NodeInfoServer struct {
 	nis NodeInfoService
 }
 
-func (server *NodeInfoServer) UpdateInfo(response http.ResponseWriter, request *http.Request)  {
+func (ns *NodeInfoServer) Handle(response http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		ns.list(response, r)
+	} else if r.Method == http.MethodPost {
+		ns.updateInfo(response, r)
+	}
+}
+
+func (server *NodeInfoServer) updateInfo(response http.ResponseWriter, request *http.Request) {
 
 	if request.Method == http.MethodPost {
 		defer request.Body.Close()
@@ -29,6 +37,30 @@ func (server *NodeInfoServer) UpdateInfo(response http.ResponseWriter, request *
 		}
 
 		err = server.nis.UpdateNode(info)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
+func (server *NodeInfoServer) list(response http.ResponseWriter, request *http.Request) {
+
+	if request.Method == http.MethodGet {
+		response.Header().Set("Content-Type", "application/json")
+		nodeList, err := server.nis.ListNodes()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		data, err := json.Marshal(nodeList)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		_, err = response.Write(data)
 		if err != nil {
 			log.Println(err)
 			return

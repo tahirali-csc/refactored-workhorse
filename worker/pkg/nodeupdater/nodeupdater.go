@@ -26,7 +26,7 @@ func (updater *NodeUpdater) Register() {
 }
 
 func (updater *NodeUpdater) heartBeat() {
-	timer := time.NewTicker(time.Second * 60)
+	timer := time.NewTicker(time.Second * 10)
 	for {
 		select {
 		case <-timer.C:

@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/updatestepstatus", buildServer.UpdateBuildStepStatus)
 	http.HandleFunc("/updatebuildstepbinding", buildServer.BindingBuildStepToNode)
 
-	http.HandleFunc("/api/nodeinfo", nodeServer.UpdateInfo)
+	http.HandleFunc("/api/nodeinfo", nodeServer.Handle)
 
 	http.ListenAndServe("localhost:"+config.Server.Port, nil)
 }
