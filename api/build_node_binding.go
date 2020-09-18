@@ -1,14 +1,13 @@
 package api
 
 type BuildNodeBinding struct {
-	Id        int
-	BuildId   int
-	IpAddress string
+	Id      int
+	BuildId int
+	NodeId  int
 }
 
 type BuildStepNodeBinding struct {
 	Id        int
-	StepId   int
+	StepId    int
 	IpAddress string
 }
-

@@ -93,7 +93,7 @@ create database workhorse;
   CREATE TABLE IF NOT EXISTS build_node_binding(
     id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
     build_id int4,
-    ip_address varchar(255)
+    node_id integer
   )
 
   CREATE TABLE IF NOT EXISTS build_step_node_binding(

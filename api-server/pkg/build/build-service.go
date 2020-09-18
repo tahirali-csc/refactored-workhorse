@@ -80,12 +80,12 @@ func (bs *BuildService) BindToNode(binding *api.BuildNodeBinding) {
 	defer db.Close()
 
 	insertStmt := `
-	INSERT INTO build_node_binding (build_id, ip_address)
+	INSERT INTO build_node_binding (build_id, node_id)
 	VALUES ($1, $2)
 	RETURNING id
 	`
 
-	_, err = db.Exec(insertStmt, binding.BuildId, binding.IpAddress)
+	_, err = db.Exec(insertStmt, binding.BuildId, binding.NodeId)
 	if err != nil {
 		log.Println(err)
 	}

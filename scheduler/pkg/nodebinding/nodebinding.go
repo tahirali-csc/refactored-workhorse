@@ -1,25 +1,23 @@
 package nodebinding
 
 import (
+	"github.com/workhorse/api"
 	"log"
 
 	coreapi "github.com/workhorse/api"
 	client "github.com/workhorse/client/api"
 )
 
-func BindBuildToNode(build *coreapi.Build) {
-
-	selectedHost := "localhost"
+func BindBuildToNode(build *coreapi.Build, node api.NodeInfo) {
 
 	nodeBinding := coreapi.BuildNodeBinding{
-		IpAddress: selectedHost,
+		NodeId: node.Id,
 		BuildId:   build.Id,
 	}
 
 	builds := client.Builds{}
 	log.Println(builds)
 	builds.BindToNode(nodeBinding)
-
 }
 
 func BindBuildStepToNode(step *coreapi.BuildStep) {
