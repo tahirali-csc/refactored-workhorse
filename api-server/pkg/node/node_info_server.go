@@ -36,11 +36,19 @@ func (server *NodeInfoServer) updateInfo(response http.ResponseWriter, request *
 			return
 		}
 
-		err = server.nis.UpdateNode(info)
+		nodeInfo, err := server.nis.UpdateNode(info)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
+		data, err := json.Marshal(nodeInfo)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		response.Write(data)
 	}
 }
 

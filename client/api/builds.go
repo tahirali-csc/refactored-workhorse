@@ -3,6 +3,8 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -55,6 +57,20 @@ func (b *Builds) WatchBuildStepNodeBinding(url string, handler WatchHandler) err
 	return err
 }
 
+func (b *Builds) WatchBuildNodeBinding(url string, handler WatchHandler) error {
+
+	client := sse.NewClient(url)
+
+	err := client.Subscribe("build-node-binding", func(msg *sse.Event) {
+		build := &api.BuildNodeBinding{}
+		//log.Println(msg)
+		json.Unmarshal(msg.Data, build)
+		handler(build)
+	})
+
+	return err
+}
+
 func (b *Builds) BindToNode(binding api.BuildNodeBinding) {
 	client := http.Client{}
 
@@ -98,3 +114,40 @@ func (b *Builds) BindBuildStepToNode(binding api.BuildStepNodeBinding) {
 
 }
 
+func (b *Builds) GetBuild(buildId int) (*api.Build, error) {
+	client := http.Client{}
+
+	res, err := client.Get(fmt.Sprintf("http://localhost:8081/getbuild?buildId=%d", buildId))
+	//log.Println(res)
+	if err != nil {
+		return nil, err
+	}
+
+	dat, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	build := &api.Build{}
+	err = json.Unmarshal(dat, build)
+	return build, err
+}
+
+func(s *Builds) GetStep(stepId int) (*api.BuildStep, error){
+	client := http.Client{}
+
+	res, err := client.Get(fmt.Sprintf("http://localhost:8081/getstep?stepId=%d", stepId))
+	//log.Println(res)
+	if err != nil {
+		return nil, err
+	}
+
+	dat, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	build := &api.BuildStep{}
+	err = json.Unmarshal(dat, build)
+	return build, err
+}

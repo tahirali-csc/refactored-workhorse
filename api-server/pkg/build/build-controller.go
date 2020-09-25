@@ -3,7 +3,9 @@ package build
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/workhorse/api"
 )
@@ -101,6 +103,42 @@ func (bc *BuildController) BindingBuildStepToNode(response http.ResponseWriter, 
 		}
 
 		buildService.BindBuildStepToNode(mp)
+	}
+}
+
+func (bc *BuildController) GetBuild(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "GET" {
+		buildService := BuildService{}
+
+		val, ok := request.URL.Query()["buildId"]
+		if ok {
+			buildId, _ := strconv.Atoi(val[0])
+			steps, _ := buildService.GetBuild(buildId)
+			dat, err := json.Marshal(steps)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			response.Write(dat)
+		}
+	}
+}
+
+func (bc *BuildController) GetStep(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "GET" {
+		buildService := BuildService{}
+
+		val, ok := request.URL.Query()["stepId"]
+		if ok {
+			stepId, _ := strconv.Atoi(val[0])
+			steps, _ := buildService.GetStep(stepId)
+			dat, err := json.Marshal(steps)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			response.Write(dat)
+		}
 	}
 }
 

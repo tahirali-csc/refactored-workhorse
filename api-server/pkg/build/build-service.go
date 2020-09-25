@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/workhorse/apiserver/pkg/db"
 	"log"
 	"time"
 
@@ -140,4 +141,152 @@ func (bs *BuildService) BindBuildStepToNode(step *api.BuildStepNodeBinding) {
 		log.Println(err)
 	}
 
+}
+
+func (bs *BuildService) GetBuild(buildId int) (api.Build, error) {
+
+	build := api.Build{}
+
+	err := db.Run(func(db *sql.DB) error {
+		selectStmt := `
+select * 
+from build b 
+where b.id = $1
+	`
+		row := db.QueryRow(selectStmt, buildId)
+		var id int
+		var status string
+		var projectId int64
+		var createdTs time.Time
+		var startTs, endTs sql.NullTime
+
+		err := row.Scan(&id, &status, &projectId, &createdTs, &startTs, &endTs)
+		if err != nil {
+			return err
+		}
+
+		build.Id = id
+		build.Status = status
+		build.ProjectId = projectId
+		build.CreatedTs = createdTs
+		if startTs.Valid {
+			build.StartTs = startTs.Time
+		}
+		if endTs.Valid {
+			build.EndTs = endTs.Time
+		}
+
+		selectStmt = `
+select * from build_steps 
+where build_id=$1
+	`
+		rows, err := db.Query(selectStmt, buildId)
+		if err != nil {
+			return err
+		}
+
+		for rows.Next() {
+			var id int
+			var buildId int
+			var name, image, status string
+			var createdTs time.Time
+			var startTs, endTs sql.NullTime
+
+			err := rows.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs)
+			if err != nil {
+				return err
+			}
+
+			bs := api.BuildStep{
+				Id:        id,
+				BuildId:   buildId,
+				Name:      name,
+				Image:     image,
+				Status:    status,
+				CreatedTs: createdTs,
+			}
+
+			if startTs.Valid {
+				bs.StartTs = startTs.Time
+			}
+			if endTs.Valid {
+				bs.EndTs = endTs.Time
+			}
+
+			build.Steps = append(build.Steps, bs)
+		}
+
+		return nil
+	})
+
+	return build, err
+}
+
+func (bs *BuildService) GetStep(stepId int) (api.BuildStep, error) {
+
+	step := api.BuildStep{}
+
+	err := db.Run(func(db *sql.DB) error {
+		selectStmt := `
+select * 
+from build_steps 
+where id = $1
+	`
+		row := db.QueryRow(selectStmt, stepId)
+		var id int
+		var buildId int
+		var name, image, status string
+		var createdTs time.Time
+		var startTs, endTs sql.NullTime
+
+		err := row.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs)
+		if err != nil {
+			return err
+		}
+
+		step.Id = id
+		step.BuildId = buildId
+		step.Name = name
+		step.Image = image
+		step.Status = status
+		step.CreatedTs = createdTs
+		if startTs.Valid {
+			step.StartTs = startTs.Time
+		}
+		if endTs.Valid {
+			step.EndTs = endTs.Time
+		}
+
+		selectStmt = `
+select * from build_steps_command 
+where step_id=$1
+	`
+		rows, err := db.Query(selectStmt, stepId)
+		if err != nil {
+			return err
+		}
+
+		for rows.Next() {
+			var id int
+			var stepId int
+			var command string
+
+			err := rows.Scan(&id, &stepId, &command)
+			if err != nil {
+				return err
+			}
+
+			bs := api.BuildStepCommand{
+				Id:      id,
+				Command: command,
+				StepId:  stepId,
+			}
+
+			step.Commands = append(step.Commands, bs)
+		}
+
+		return nil
+	})
+
+	return step, err
 }

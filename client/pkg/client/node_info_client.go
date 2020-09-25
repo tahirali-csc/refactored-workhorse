@@ -18,20 +18,27 @@ func NewNodeInfoClient(apClient *ApiClient) *NodeInfoClient {
 	}
 }
 
-func (nodeClient *NodeInfoClient) Update(info *api.NodeInfo) error {
+func (nodeClient *NodeInfoClient) Update(info *api.NodeInfo) (*api.NodeInfo, error) {
 
 	obj, err := json.Marshal(info)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	client := http.Client{}
-	_, err = client.Post(nodeClient.apiClient.url+"/api/nodeinfo", "application/json", bytes.NewReader(obj))
+	res, err := client.Post(nodeClient.apiClient.url+"/api/nodeinfo", "application/json", bytes.NewReader(obj))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	dat, _ := ioutil.ReadAll(res.Body)
+	nodeInfo := &api.NodeInfo{}
+	err = json.Unmarshal(dat, nodeInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return nodeInfo, nil
 }
 
 func (nodeClient *NodeInfoClient) List() ([]api.NodeInfo, error) {

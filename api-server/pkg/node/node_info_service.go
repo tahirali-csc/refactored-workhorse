@@ -10,25 +10,36 @@ import (
 type NodeInfoService struct {
 }
 
+func (ns *NodeInfoService) UpdateNode(info *api.NodeInfo) (api.NodeInfo, error) {
 
+	node := api.NodeInfo{}
 
-func (ns *NodeInfoService) UpdateNode(info *api.NodeInfo) error {
-
-	return db.Run(func(db *sql.DB) error {
+	err := db.Run(func(db *sql.DB) error {
 		insertStmt := `
 	insert into node_info
 	(name, last_heart_beat)
 	values($1, $2)
 	on conflict(name) do update set last_heart_beat = EXCLUDED.last_heart_beat
+	RETURNING id
 	`
 
-		_, err := db.Exec(insertStmt, info.Name, info.LastHeartBeatTS)
+		id := 0
+		//var lastHeartbeat time.Time
+
+		err := db.QueryRow(insertStmt, info.Name, info.LastHeartBeatTS).Scan(&id)
 		if err != nil {
 			return err
 		}
 
+		node.Id  = id
+		node.Name = info.Name
+		//TODO: will review this
+		node.LastHeartBeatTS = info.LastHeartBeatTS
+
 		return nil
 	})
+
+	return node, err
 }
 
 func (ns *NodeInfoService) ListNodes() ([]api.NodeInfo, error) {

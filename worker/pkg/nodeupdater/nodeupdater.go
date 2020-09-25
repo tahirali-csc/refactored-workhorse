@@ -20,9 +20,9 @@ func NewNodeUpdater() *NodeUpdater {
 	}
 }
 
-func (updater *NodeUpdater) Register() {
-	updater.update()
+func (updater *NodeUpdater) Register() (*api.NodeInfo, error) {
 	go updater.heartBeat()
+	return updater.update()
 }
 
 func (updater *NodeUpdater) heartBeat() {
@@ -35,10 +35,10 @@ func (updater *NodeUpdater) heartBeat() {
 	}
 }
 
-func (updater *NodeUpdater) update() error {
+func (updater *NodeUpdater) update() (*api.NodeInfo, error) {
 	hostName, err := commons.GetHostname()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	nodeInfo := &api.NodeInfo{
