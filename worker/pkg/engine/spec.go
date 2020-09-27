@@ -4,7 +4,6 @@ type (
 	// Metadata provides execution metadata.
 	Metadata struct {
 		UID       string            `json:"uid,omitempty"`
-		Name      string            `json:"name,omitempty"`
 		Labels    map[string]string `json:"labels,omitempty"`
 	}
 

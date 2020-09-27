@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	api2 "github.com/workhorse/api"
 	"github.com/workhorse/client/api"
 	engine2 "github.com/workhorse/worker/pkg/engine"
 	"github.com/workhorse/worker/pkg/engine/docker"
+	"github.com/workhorse/worker/pkg/executor"
+	"github.com/workhorse/worker/pkg/logstorage"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -99,8 +102,7 @@ ls -la | grep 'me'`
 
 	step := engine2.Step{
 		Metadata: engine2.Metadata{
-			Name: "thepower",
-			UID:  fmt.Sprintf("%d", time.Now().Unix()),
+			UID: fmt.Sprintf("%d", time.Now().Unix()),
 		},
 		Docker: &engine2.DockerStep{
 			Args:    nil,
@@ -136,9 +138,56 @@ ls -la | grep 'me'`
 	}
 }
 
+func runStep() {
+
+	tempStepLogDir, err := ioutil.TempDir("", "setp")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//log.Println(tempStepLogDir)
+	tempStepLogFile, error := ioutil.TempFile(tempStepLogDir, "*.log")
+	if error != nil {
+		log.Println(error)
+	}
+
+	log.Println("log location:", tempStepLogFile.Name())
+
+	err = tempStepLogFile.Chmod(0777)
+	if error != nil {
+		log.Println(error)
+	}
+
+	dockerEngine, _ := docker.NewDockerEngine()
+	fileLogStorage := logstorage.NewFileLogStore(tempStepLogFile)
+	stepRunner := executor.NewStepRunner(dockerEngine, fileLogStorage)
+
+	//Fake Build Step
+	buildStep := &api2.BuildStep{}
+	buildStep.Name = "build1"
+	buildStep.Image = "alpine:latest"
+	buildStep.Commands = []api2.BuildStepCommand{
+		{
+			Command: "ls -al",
+			Id:      1,
+			StepId:  1,
+		},
+		{
+			Command: "sleep 10s && date",
+			Id:      2,
+			StepId:  1,
+		},
+	}
+	//
+
+	stepRunner.Run(buildStep)
+}
+
 func main() {
 
-	RunStep()
+	runStep()
+
+	//RunStep()
 
 	//TODO: would review if there is an event arrived while waiting for the response from API server
 	//nodeUpdater := nodeupdater.NewNodeUpdater()
