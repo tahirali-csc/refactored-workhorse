@@ -14,6 +14,7 @@ func main() {
 	stepServer := buildstep.NewServer()
 
 	http.HandleFunc("/runstep", stepServer.HandleRunStep)
+	http.HandleFunc("/stream/step", stepServer.HandleLogStream)
 
 	http.ListenAndServe("localhost:8086", nil)
 

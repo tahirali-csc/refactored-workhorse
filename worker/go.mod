@@ -29,4 +29,5 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	google.golang.org/grpc v1.31.1 // indirect
+	github.com/r3labs/sse v0.0.0-20200819143619-1491ab50668f
 )
