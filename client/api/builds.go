@@ -21,7 +21,11 @@ func (b *Builds) Watch(url string, handler WatchHandler) error {
 
 	client := sse.NewClient(url)
 
+
+
+
 	err := client.Subscribe("build", func(msg *sse.Event) {
+		log.Println("Event ID:", client.EventID)
 		build := &api.Build{}
 		json.Unmarshal(msg.Data, build)
 		handler(build)
@@ -150,4 +154,23 @@ func(s *Builds) GetStep(stepId int) (*api.BuildStep, error){
 	build := &api.BuildStep{}
 	err = json.Unmarshal(dat, build)
 	return build, err
+}
+
+func (b *Builds) RunStep(stepId int) (error) {
+	client := http.Client{}
+
+	_, err := client.Post(fmt.Sprintf("http://localhost:8086/runstep?stepId=%d",stepId), "", nil)
+	//log.Println(res)
+	if err != nil {
+		return err
+	}
+
+	//dat, err := ioutil.ReadAll(res.Body)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	//build := &api.Build{}
+	//err = json.Unmarshal(dat, build)
+	return err
 }

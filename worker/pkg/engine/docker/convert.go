@@ -47,7 +47,8 @@ func toHostConfig(spec *engine.Spec, step *engine.Step) *container.HostConfig {
 		})
 	}
 	config := &container.HostConfig{
-		Mounts: mounts,
+		Mounts:     mounts,
+		AutoRemove: true,
 	}
 	return config
 }

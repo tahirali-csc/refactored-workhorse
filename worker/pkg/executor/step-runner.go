@@ -8,8 +8,6 @@ import (
 	engine2 "github.com/workhorse/worker/pkg/engine"
 	"github.com/workhorse/worker/pkg/logstorage"
 	"io/ioutil"
-	"log"
-	"time"
 )
 
 type StepRunner struct {
@@ -53,7 +51,8 @@ func (se *StepRunner) Run(buildStep *api.BuildStep) error {
 
 	step := engine2.Step{
 		Metadata: engine2.Metadata{
-			UID: fmt.Sprintf("%d", time.Now().Unix()),
+			//UID: fmt.Sprintf("%d", time.Now().Unix()),
+			UID: fmt.Sprintf("%d", buildStep.Id),
 		},
 		Docker: &engine2.DockerStep{
 			Args:    nil,
@@ -71,12 +70,12 @@ func (se *StepRunner) Run(buildStep *api.BuildStep) error {
 
 	err = se.engine.Create(ctx, nil, &step)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	err = se.engine.Start(ctx, nil, &step)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	reader, err := se.engine.Tail(ctx, nil, &step)
@@ -85,6 +84,11 @@ func (se *StepRunner) Run(buildStep *api.BuildStep) error {
 	for {
 		line, err := linerReader.ReadBytes('\n')
 		if err != nil {
+			//log.Println("Destroying container")
+			//err := se.engine.Destroy(ctx, &step)
+			//if err != nil {
+			//	return err
+			//}
 			break
 		}
 		se.logStore.Write(ctx, int64(buildStep.Id), line)

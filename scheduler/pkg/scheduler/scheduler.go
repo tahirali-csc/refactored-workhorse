@@ -31,6 +31,7 @@ func (sch *Scheduler) Run() {
 		b := client2.Builds{}
 		for {
 			b.Watch("http://localhost:8084/events", func(obj interface{}) {
+				log.Println("Got event :::", obj)
 				build := obj.(*api.Build)
 				sch.bq.Add(build)
 			})
@@ -98,5 +99,5 @@ func (sch *Scheduler) syncNodeList(nodeList []api.NodeInfo) {
 	}
 
 	sch.nodeList = append(sch.nodeList, newNodes...)
-	log.Println("Nodes:::", sch.nodeList)
+	//log.Println("Nodes:::", sch.nodeList)
 }

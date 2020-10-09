@@ -68,3 +68,23 @@ func (de *dockerEngine) Tail(ctx context.Context, spec *engine.Spec, step *engin
 	//}()
 	//return rc, nil
 }
+
+func (de *dockerEngine) Destroy(ctx context.Context, step *engine.Step) error {
+	removeOpts := types.ContainerRemoveOptions{
+		Force:         true,
+		RemoveLinks:   true,
+		RemoveVolumes: true,
+	}
+
+	//err := de.dockerClient.ContainerKill(ctx, step.Metadata.UID, "9")
+	//if err != nil {
+	//	return err
+	//}
+
+	err := de.dockerClient.ContainerRemove(ctx, step.Metadata.UID, removeOpts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

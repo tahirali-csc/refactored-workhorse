@@ -43,7 +43,8 @@ func (mapper *DBEventToSSEStreamMapper) initEventToSSEMapping() {
 	mapper.tableStreamMap["build_node_binding"] = eventMappingInfo{Stream: "build-node-binding", Mapper: &BuildNodeBindingEventMapper{}}
 
 	for _, value := range mapper.tableStreamMap {
-		mapper.sseServer.CreateStream(value.Stream)
+		stream := mapper.sseServer.CreateStream(value.Stream)
+		stream.AutoReplay = false
 	}
 }
 
