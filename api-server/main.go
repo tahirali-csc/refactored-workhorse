@@ -1,17 +1,20 @@
 package main
 
 import (
+	"github.com/workhorse/apiserver/pkg/build"
+	"github.com/workhorse/apiserver/pkg/config"
 	"github.com/workhorse/apiserver/pkg/node"
 	"log"
 	"net/http"
-
-	"github.com/workhorse/apiserver/pkg/build"
-	"github.com/workhorse/apiserver/pkg/config"
 )
 
 func main() {
 	config := config.GetAppConfig()
 	log.Println(*config)
+
+	//buildService := build.BuildService{}
+	//stepInfo, _ := buildService.GetStep(188)
+	//log.Println(stepInfo)
 
 	buildServer := build.BuildController{}
 	nodeServer := node.NodeInfoServer{}
@@ -24,6 +27,7 @@ func main() {
 
 	http.HandleFunc("/getbuild", buildServer.GetBuild)
 	http.HandleFunc("/getstep", buildServer.GetStep)
+	http.HandleFunc("/patch", buildServer.Patch)
 
 	http.HandleFunc("/api/nodeinfo", nodeServer.Handle)
 

@@ -23,10 +23,10 @@ func (mapper *BuildStepEventObjectMapper) Map(m map[string]interface{}) []byte {
 		build.CreatedTs = commons.ParseDBTime(m["created_ts"])
 	}
 	if m["end_ts"] != nil {
-		build.EndTs = commons.ParseDBTime(m["end_ts"])
+		//build.EndTs = commons.ParseDBTime(m["end_ts"])
 	}
 	if m["start_ts"] != nil {
-		build.StartTs = commons.ParseDBTime(m["start_ts"])
+		//build.StartTs = commons.ParseDBTime(m["start_ts"])
 	}
 
 	output, err := json.Marshal(build)

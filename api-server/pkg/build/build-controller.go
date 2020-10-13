@@ -76,13 +76,22 @@ func (bc *BuildController) UpdateBuildStepStatus(response http.ResponseWriter, r
 			panic(err)
 		}
 
-		mp := &buildStepStatus{}
-		err = json.Unmarshal(body, mp)
+		bs := &api.BuildStep{}
+
+		//mp := &buildStepStatus{}
+		//err = json.Unmarshal(body, mp)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//
+		//buildService.UpdateBuildStepStatus(mp.StepId, mp.Status)
+
+		err = json.Unmarshal(body, bs)
 		if err != nil {
 			panic(err)
 		}
+		buildService.UpdateBuildStep(bs)
 
-		buildService.UpdateBuildStepStatus(mp.StepId, mp.Status)
 	}
 }
 
@@ -139,6 +148,27 @@ func (bc *BuildController) GetStep(response http.ResponseWriter, request *http.R
 			}
 			response.Write(dat)
 		}
+	}
+}
+
+func (bc *BuildController) Patch(response http.ResponseWriter, request *http.Request){
+	if request.Method == "PATCH"{
+		bodyData , _ := ioutil.ReadAll(request.Body)
+
+		patchData := make(map[string]interface{})
+		err := json.Unmarshal(bodyData, &patchData)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+
+
+		id, _ := patchData["id"].(float64)
+		delete(patchData, "id")
+
+		buildService := BuildService{}
+		buildService.PatchBuildStep(int(id), patchData)
 	}
 }
 

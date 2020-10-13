@@ -1,6 +1,7 @@
 package buildstep
 
 import (
+	api2 "github.com/workhorse/api"
 	"github.com/workhorse/client/api"
 	"github.com/workhorse/worker/pkg/engine/docker"
 	"github.com/workhorse/worker/pkg/executor"
@@ -42,7 +43,9 @@ func (manager *StepManager) Run(stepId int) {
 	fileLogStorage := logstorage.NewFileLogStore(tempStepLogFile)
 	stepRunner := executor.NewStepRunner(dockerEngine, fileLogStorage)
 
-	b.UpdateBuildStepStatus(stepId, "Starting")
+	buildStep.Status = "Starting"
+	//b.UpdateBuildStep(stepId, "Starting")
+	b.UpdateBuildStep(buildStep)
 
 
 	err = stepRunner.Run(buildStep)
@@ -50,5 +53,12 @@ func (manager *StepManager) Run(stepId int) {
 		log.Println(err)
 	}
 
-	b.UpdateBuildStepStatus(stepId, "Finished")
+	//b.UpdateBuildStepStatus(stepId, "Finished")
+	buildStep.Status = "Finished"
+	//b.UpdateBuildStep(stepId, "Starting")
+	buildStep.LogInfo = make(api2.LogStorageProperties)
+	buildStep.LogInfo["type"] = "file"
+	buildStep.LogInfo["path"] = tempStepLogFile.Name()
+	b.UpdateBuildStep(buildStep)
+
 }

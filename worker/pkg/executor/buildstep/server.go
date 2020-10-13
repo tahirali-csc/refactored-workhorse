@@ -53,6 +53,7 @@ func (server *Server) HandleLogStream(w http.ResponseWriter, request *http.Reque
 				return
 			}
 
+			//TODO: Would review this approach with current sse library
 			h := w.Header()
 			h.Set("Content-Type", "text/event-stream")
 			h.Set("Cache-Control", "no-cache")

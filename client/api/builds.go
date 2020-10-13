@@ -21,9 +21,6 @@ func (b *Builds) Watch(url string, handler WatchHandler) error {
 
 	client := sse.NewClient(url)
 
-
-
-
 	err := client.Subscribe("build", func(msg *sse.Event) {
 		log.Println("Event ID:", client.EventID)
 		build := &api.Build{}
@@ -88,21 +85,28 @@ func (b *Builds) BindToNode(binding api.BuildNodeBinding) {
 
 }
 
-func (b *Builds) UpdateBuildStepStatus(stepId int, status string) {
+//func (b *Builds) UpdateBuildStepStatus(stepId int, status string) {
+//	client := http.Client{}
+//
+//	st := make(map[string]interface{})
+//	st["stepId"] = stepId
+//	st["status"] = status
+//
+//	dt, _ := json.Marshal(st)
+//
+//	res, err := client.Post("http://localhost:8081/updatestepstatus", "application/json", bytes.NewReader(dt))
+//	log.Println(res)
+//	if err != nil {
+//		log.Println("Error", err)
+//	}
+//
+//}
+func (b *Builds) UpdateBuildStep(step *api.BuildStep) error {
+	dt, _ := json.Marshal(step)
+
 	client := http.Client{}
-
-	st := make(map[string]interface{})
-	st["stepId"] = stepId
-	st["status"] = status
-
-	dt, _ := json.Marshal(st)
-
-	res, err := client.Post("http://localhost:8081/updatestepstatus", "application/json", bytes.NewReader(dt))
-	log.Println(res)
-	if err != nil {
-		log.Println("Error", err)
-	}
-
+	_, err := client.Post("http://localhost:8081/updatestepstatus", "application/json", bytes.NewReader(dt))
+	return err
 }
 
 func (b *Builds) BindBuildStepToNode(binding api.BuildStepNodeBinding) {
@@ -137,7 +141,7 @@ func (b *Builds) GetBuild(buildId int) (*api.Build, error) {
 	return build, err
 }
 
-func(s *Builds) GetStep(stepId int) (*api.BuildStep, error){
+func (s *Builds) GetStep(stepId int) (*api.BuildStep, error) {
 	client := http.Client{}
 
 	res, err := client.Get(fmt.Sprintf("http://localhost:8081/getstep?stepId=%d", stepId))
@@ -156,10 +160,10 @@ func(s *Builds) GetStep(stepId int) (*api.BuildStep, error){
 	return build, err
 }
 
-func (b *Builds) RunStep(stepId int) (error) {
+func (b *Builds) RunStep(stepId int) error {
 	client := http.Client{}
 
-	_, err := client.Post(fmt.Sprintf("http://localhost:8086/runstep?stepId=%d",stepId), "", nil)
+	_, err := client.Post(fmt.Sprintf("http://localhost:8086/runstep?stepId=%d", stepId), "", nil)
 	//log.Println(res)
 	if err != nil {
 		return err
