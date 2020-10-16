@@ -78,7 +78,9 @@ CREATE TABLE IF NOT EXISTS build_steps
     status     varchar(30)  NULL,
     created_ts timestamp    NULL,
     start_ts   timestamp    NULL,
-    end_ts     timestamp    NULL
+    end_ts     timestamp    NULL,
+    log_info jsonb NULL,
+    node_id int4 NULL
 );
 
 drop trigger if exists build_steps_notify_event on build_steps;

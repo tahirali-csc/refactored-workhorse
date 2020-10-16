@@ -22,6 +22,8 @@ func NewBuildOrchestrator() *BuildOrchestrator {
 }
 
 func (orchestrator *BuildOrchestrator) Start() {
+
+
 	go orchestrator.watchBuildNodeBinding()
 	go orchestrator.watchBuildStepStatus()
 

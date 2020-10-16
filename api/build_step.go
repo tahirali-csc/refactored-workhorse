@@ -18,6 +18,7 @@ type BuildStep struct {
 	EndTs     *time.Time
 	LogInfo   LogStorageProperties
 	Commands  []BuildStepCommand `json:"commands"`
+	Node      NodeInfo
 }
 
 type LogStorageProperties map[string]interface{}

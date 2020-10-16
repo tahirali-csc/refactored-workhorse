@@ -119,7 +119,7 @@ func (bs *BuildService) BindToNode(binding *api.BuildNodeBinding) {
 //
 //}
 
-func (bs *BuildService) UpdateBuildStep(buildStep * api.BuildStep) {
+func (bs *BuildService) UpdateBuildStep(buildStep *api.BuildStep) {
 	//config := config.GetAppConfig()
 	//var conninfo string = fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable",
 	//	config.Database.Name, config.Database.User, config.Database.Password, config.Database.Host)
@@ -145,15 +145,15 @@ func (bs *BuildService) UpdateBuildStep(buildStep * api.BuildStep) {
 	db.Run(func(db *sql.DB) error {
 		updateStmt := `
 		UPDATE build_steps
-		SET build_id=$1, name=$2, image=$3,status=$4,created_ts=$5, start_ts=$6, end_ts=$7, log_info=$8
-		WHERE id=$9`
+		SET build_id=$1, name=$2, image=$3,status=$4,created_ts=$5, start_ts=$6, end_ts=$7, log_info=$8,
+		node_id=$9
+		WHERE id=$10`
 
 		_, err := db.Exec(updateStmt, buildStep.BuildId, buildStep.Name, buildStep.Image, buildStep.Status,
-			buildStep.CreatedTs, buildStep.StartTs, buildStep.EndTs, buildStep.LogInfo, buildStep.Id)
+			buildStep.CreatedTs, buildStep.StartTs, buildStep.EndTs, buildStep.LogInfo, buildStep.Node.Id, buildStep.Id)
 		return err
 	})
 }
-
 
 func (bs *BuildService) BindBuildStepToNode(step *api.BuildStepNodeBinding) {
 	config := config.GetAppConfig()
@@ -229,8 +229,9 @@ where build_id=$1
 			var createdTs time.Time
 			var startTs, endTs sql.NullTime
 			var logInfo api.LogStorageProperties
+			var nodeId sql.NullInt32
 
-			err := rows.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo)
+			err := rows.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo, &nodeId)
 			if err != nil {
 				return err
 			}
@@ -242,7 +243,7 @@ where build_id=$1
 				Image:     image,
 				Status:    status,
 				CreatedTs: createdTs,
-				LogInfo: logInfo,
+				LogInfo:   logInfo,
 			}
 
 			if startTs.Valid {
@@ -250,6 +251,12 @@ where build_id=$1
 			}
 			if endTs.Valid {
 				bs.EndTs = &endTs.Time
+			}
+
+			if nodeId.Valid {
+				bs.Node = api.NodeInfo{
+					Id: int(nodeId.Int32),
+				}
 			}
 
 			build.Steps = append(build.Steps, bs)
@@ -278,8 +285,9 @@ where id = $1
 		var createdTs time.Time
 		var startTs, endTs sql.NullTime
 		var logInfo api.LogStorageProperties
+		var nodeId sql.NullInt32
 
-		err := row.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo)
+		err := row.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo, &nodeId)
 		if err != nil {
 			return err
 		}
@@ -297,6 +305,12 @@ where id = $1
 			step.EndTs = &endTs.Time
 		}
 		step.LogInfo = logInfo
+
+		if nodeId.Valid {
+			step.Node = api.NodeInfo{
+				Id: int(nodeId.Int32),
+			}
+		}
 
 		selectStmt = `
 select * from build_steps_command 
@@ -332,8 +346,7 @@ where step_id=$1
 	return step, err
 }
 
-
-func (bs *BuildService) PatchBuildStep(id int, input map[string]interface{}){
+func (bs *BuildService) PatchBuildStep(id int, input map[string]interface{}) {
 	dbFieldMapping := make(map[string]string)
 
 	dbFieldMapping["buildId"] = "build_id"
@@ -345,23 +358,23 @@ func (bs *BuildService) PatchBuildStep(id int, input map[string]interface{}){
 	var updateSql strings.Builder
 	updateSql.WriteString("update build_steps set ")
 	var values []interface{}
-	idx :=0
+	idx := 0
 	for k, v := range input {
 		col, ok := dbFieldMapping[k]
 		if !ok {
 			col = k
 		}
 
-		if idx == len(input) - 1 {
-			updateSql.WriteString(fmt.Sprintf("%s=$%d", col, idx + 1))
-		} else{
-			updateSql.WriteString(fmt.Sprintf("%s=$%d,", col, idx + 1))
+		if idx == len(input)-1 {
+			updateSql.WriteString(fmt.Sprintf("%s=$%d", col, idx+1))
+		} else {
+			updateSql.WriteString(fmt.Sprintf("%s=$%d,", col, idx+1))
 		}
 
 		values = append(values, v)
 		idx++
 	}
-	updateSql.WriteString(fmt.Sprintf(" where id=$%d", idx + 1))
+	updateSql.WriteString(fmt.Sprintf(" where id=$%d", idx+1))
 	values = append(values, id)
 
 	db.Run(func(db *sql.DB) error {

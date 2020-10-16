@@ -3,11 +3,14 @@ package buildstep
 import (
 	api2 "github.com/workhorse/api"
 	"github.com/workhorse/client/api"
+	"github.com/workhorse/client/pkg/client"
 	"github.com/workhorse/worker/pkg/engine/docker"
 	"github.com/workhorse/worker/pkg/executor"
 	"github.com/workhorse/worker/pkg/logstorage"
 	"io/ioutil"
 	"log"
+	"os"
+	"strings"
 )
 
 type StepManager struct {
@@ -18,6 +21,19 @@ func NewStepManager() *StepManager {
 }
 
 func (manager *StepManager) Run(stepId int) {
+
+	machineName, _:= os.Hostname()
+
+	var currentNode api2.NodeInfo
+	apiClient := client.ApiClient{}
+	apiClient.Init("http://localhost:8081/")
+	nodeInfoClient := apiClient.GetNodeInfoClient()
+	nodes, _ := nodeInfoClient.List()
+	for _, n := range nodes {
+		if strings.ToLower(n.Name) == strings.ToLower(machineName) {
+			currentNode = n
+		}
+	}
 
 	b := api.Builds{}
 	buildStep, _ := b.GetStep(stepId)
@@ -59,6 +75,7 @@ func (manager *StepManager) Run(stepId int) {
 	buildStep.LogInfo = make(api2.LogStorageProperties)
 	buildStep.LogInfo["type"] = "file"
 	buildStep.LogInfo["path"] = tempStepLogFile.Name()
+	buildStep.Node = currentNode
 	b.UpdateBuildStep(buildStep)
 
 }

@@ -9,12 +9,9 @@ import (
 )
 
 func main() {
+
 	config := config.GetAppConfig()
 	log.Println(*config)
-
-	//buildService := build.BuildService{}
-	//stepInfo, _ := buildService.GetStep(188)
-	//log.Println(stepInfo)
 
 	buildServer := build.BuildController{}
 	nodeServer := node.NodeInfoServer{}
