@@ -274,9 +274,10 @@ func (bs *BuildService) GetStep(stepId int) (api.BuildStep, error) {
 
 	err := db.Run(func(db *sql.DB) error {
 		selectStmt := `
-select * 
-from build_steps 
-where id = $1
+select s.*, n.name, n.last_heart_beat 
+from build_steps s 
+left outer join node_info n on s.node_id = n.id
+where s.id = $1
 	`
 		row := db.QueryRow(selectStmt, stepId)
 		var id int
@@ -286,8 +287,10 @@ where id = $1
 		var startTs, endTs sql.NullTime
 		var logInfo api.LogStorageProperties
 		var nodeId sql.NullInt32
+		var nodeName sql.NullString
+		var lastHeartBeat sql.NullTime
 
-		err := row.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo, &nodeId)
+		err := row.Scan(&id, &buildId, &name, &image, &status, &createdTs, &startTs, &endTs, &logInfo, &nodeId, &nodeName, &lastHeartBeat)
 		if err != nil {
 			return err
 		}
@@ -308,7 +311,9 @@ where id = $1
 
 		if nodeId.Valid {
 			step.Node = api.NodeInfo{
-				Id: int(nodeId.Int32),
+				Id:              int(nodeId.Int32),
+				Name:            nodeName.String,
+				LastHeartBeatTS: lastHeartBeat.Time,
 			}
 		}
 

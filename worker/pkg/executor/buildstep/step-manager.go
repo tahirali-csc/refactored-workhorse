@@ -64,6 +64,12 @@ func (manager *StepManager) Run(stepId int) {
 	b.UpdateBuildStep(buildStep)
 
 
+	buildStep.LogInfo = make(api2.LogStorageProperties)
+	buildStep.LogInfo["type"] = "file"
+	buildStep.LogInfo["path"] = tempStepLogFile.Name()
+	buildStep.Node = currentNode
+	b.UpdateBuildStep(buildStep)
+
 	err = stepRunner.Run(buildStep)
 	if err != nil {
 		log.Println(err)
@@ -72,10 +78,10 @@ func (manager *StepManager) Run(stepId int) {
 	//b.UpdateBuildStepStatus(stepId, "Finished")
 	buildStep.Status = "Finished"
 	//b.UpdateBuildStep(stepId, "Starting")
-	buildStep.LogInfo = make(api2.LogStorageProperties)
-	buildStep.LogInfo["type"] = "file"
-	buildStep.LogInfo["path"] = tempStepLogFile.Name()
-	buildStep.Node = currentNode
+	//buildStep.LogInfo = make(api2.LogStorageProperties)
+	//buildStep.LogInfo["type"] = "file"
+	//buildStep.LogInfo["path"] = tempStepLogFile.Name()
+	//buildStep.Node = currentNode
 	b.UpdateBuildStep(buildStep)
 
 }

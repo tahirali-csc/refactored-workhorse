@@ -1,7 +1,10 @@
 package build
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -151,9 +154,9 @@ func (bc *BuildController) GetStep(response http.ResponseWriter, request *http.R
 	}
 }
 
-func (bc *BuildController) Patch(response http.ResponseWriter, request *http.Request){
-	if request.Method == "PATCH"{
-		bodyData , _ := ioutil.ReadAll(request.Body)
+func (bc *BuildController) Patch(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "PATCH" {
+		bodyData, _ := ioutil.ReadAll(request.Body)
 
 		patchData := make(map[string]interface{})
 		err := json.Unmarshal(bodyData, &patchData)
@@ -162,13 +165,63 @@ func (bc *BuildController) Patch(response http.ResponseWriter, request *http.Req
 			return
 		}
 
-
-
 		id, _ := patchData["id"].(float64)
 		delete(patchData, "id")
 
 		buildService := BuildService{}
 		buildService.PatchBuildStep(int(id), patchData)
+	}
+}
+
+func (bc *BuildController) TailLogStep(w http.ResponseWriter, request *http.Request) {
+	if request.Method == "GET" {
+		val, ok := request.URL.Query()["stepId"]
+		if ok {
+			buildService := BuildService{}
+			stepId, _ := strconv.Atoi(val[0])
+			stepInfo, _ := buildService.GetStep(stepId)
+
+			url := fmt.Sprintf("http://%s:8086/stream/step?stepId=%d", stepInfo.Node.Name, stepInfo.Id)
+
+			log.Println("Stream URL::", url)
+			client := http.Client{}
+			res, err := client.Get(url)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			h := w.Header()
+			h.Set("Content-Type", "text/event-stream")
+			h.Set("Cache-Control", "no-cache")
+			h.Set("Connection", "keep-alive")
+			h.Set("X-Accel-Buffering", "no")
+
+			f, ok := w.(http.Flusher)
+			if !ok {
+				return
+			}
+
+			io.WriteString(w, ": ping\n\n")
+			f.Flush()
+
+			enc := json.NewEncoder(w)
+			reader := bufio.NewReader(res.Body)
+
+			for {
+				line, err := reader.ReadBytes('\n')
+				if err != nil {
+					f.Flush()
+					break
+				}
+
+				io.WriteString(w, "data: ")
+				enc.Encode(string(line))
+				io.WriteString(w, "\n\n")
+				f.Flush()
+			}
+
+		}
 	}
 }
 

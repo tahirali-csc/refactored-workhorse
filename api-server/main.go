@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("/buildbinding", buildServer.BindToNode)
 	http.HandleFunc("/updatestepstatus", buildServer.UpdateBuildStepStatus)
 	http.HandleFunc("/updatebuildstepbinding", buildServer.BindingBuildStepToNode)
+	http.HandleFunc("/streamstep/tailog", buildServer.TailLogStep)
 
 	http.HandleFunc("/getbuild", buildServer.GetBuild)
 	http.HandleFunc("/getstep", buildServer.GetStep)
