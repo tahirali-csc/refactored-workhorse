@@ -4,6 +4,7 @@ import (
 	"github.com/workhorse/apiserver/pkg/build"
 	"github.com/workhorse/apiserver/pkg/config"
 	"github.com/workhorse/apiserver/pkg/node"
+	"github.com/workhorse/apiserver/pkg/project"
 	"log"
 	"net/http"
 )
@@ -15,6 +16,8 @@ func main() {
 
 	buildServer := build.BuildController{}
 	nodeServer := node.NodeInfoServer{}
+	projectServer := project.NewProjectServer()
+
 
 	//
 	http.HandleFunc("/build", buildServer.CreateBuild)
@@ -28,6 +31,8 @@ func main() {
 	http.HandleFunc("/patch", buildServer.Patch)
 
 	http.HandleFunc("/api/nodeinfo", nodeServer.Handle)
+
+	http.HandleFunc("/api/project", projectServer.Handle)
 
 	http.ListenAndServe("localhost:"+config.Server.Port, nil)
 }
