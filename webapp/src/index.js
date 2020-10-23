@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import Header from './Header/Header'
+import Header from './components/Header/Header'
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
-import AddProject from './AddProject/AddProject'
+import AddProject from './components/AddProject/AddProject'
 
 ReactDOM.render(
   <React.StrictMode>
