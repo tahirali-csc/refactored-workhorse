@@ -39,21 +39,35 @@ func main() {
 	projectServer := project.NewProjectServer()
 
 	//
-	http.HandleFunc("/build", buildServer.CreateBuild)
-	http.HandleFunc("/buildbinding", buildServer.BindToNode)
-	http.HandleFunc("/updatestepstatus", buildServer.UpdateBuildStepStatus)
-	http.HandleFunc("/updatebuildstepbinding", buildServer.BindingBuildStepToNode)
-	http.HandleFunc("/streamstep/tailog", buildServer.TailLogStep)
-
-	http.HandleFunc("/getbuild", buildServer.GetBuild)
-	http.HandleFunc("/getstep", buildServer.GetStep)
-	http.HandleFunc("/patch", buildServer.Patch)
-
-	http.HandleFunc("/api/nodeinfo", nodeServer.Handle)
+	//http.HandleFunc("/build", buildServer.CreateBuild)
+	//http.HandleFunc("/buildbinding", buildServer.BindToNode)
+	//http.HandleFunc("/updatestepstatus", buildServer.UpdateBuildStepStatus)
+	//http.HandleFunc("/updatebuildstepbinding", buildServer.BindingBuildStepToNode)
+	//http.HandleFunc("/streamstep/tailog", buildServer.TailLogStep)
+	//
+	////http.HandleFunc("/getbuild", buildServer.GetBuild)
+	//http.HandleFunc("/getstep", buildServer.GetStep)
+	//http.HandleFunc("/patch", buildServer.Patch)
+	//
+	//http.HandleFunc("/api/nodeinfo", nodeServer.Handle)
 
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/project", projectServer.Handle)
+	mux.HandleFunc("/api/build", buildServer.Handle)
+	mux.HandleFunc("/api/buildsteps", buildServer.HandleBuildStep)
+
+	mux.HandleFunc("/buildbinding", buildServer.BindToNode)
+	mux.HandleFunc("/updatestepstatus", buildServer.UpdateBuildStepStatus)
+	mux.HandleFunc("/updatebuildstepbinding", buildServer.BindingBuildStepToNode)
+	mux.HandleFunc("/streamstep/tailog", buildServer.TailLogStep)
+
+	//http.HandleFunc("/getbuild", buildServer.GetBuild)
+	mux.HandleFunc("/getstep", buildServer.GetStep)
+	mux.HandleFunc("/patch", buildServer.Patch)
+
+	mux.HandleFunc("/api/nodeinfo", nodeServer.Handle)
+
 
 	http.ListenAndServe("localhost:"+config.Server.Port, setHeaders(mux))
 }

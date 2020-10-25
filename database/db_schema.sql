@@ -37,10 +37,22 @@ END;
 $function$
 ;
 
-CREATE TABLE IF NOT EXISTS project
-(
-    id     int4         NOT NULL GENERATED ALWAYS AS IDENTITY,
-    "name" varchar(200) NULL
+CREATE TABLE project (
+    id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "name" varchar(200) NOT NULL,
+    private_key text NOT NULL,
+    clone_url varchar NOT NULL,
+    CONSTRAINT project_un UNIQUE (name),
+    CONSTRAINT project_pk PRIMARY KEY (id)
+);
+
+
+CREATE TABLE project_branches (
+  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
+  "name" varchar NOT NULL,
+  project_id int4 NOT NULL,
+  CONSTRAINT project_branches_pk PRIMARY KEY (id),
+  CONSTRAINT project_branches_fk FOREIGN KEY (project_id) REFERENCES project(id)
 );
 
 

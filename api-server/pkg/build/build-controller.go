@@ -16,7 +16,7 @@ import (
 type BuildController struct {
 }
 
-func (bc *BuildController) CreateBuild(response http.ResponseWriter, request *http.Request) {
+func (bc *BuildController) createBuild(response http.ResponseWriter, request *http.Request) {
 	if request.Method == "POST" {
 		buildService := BuildService{}
 
@@ -27,8 +27,14 @@ func (bc *BuildController) CreateBuild(response http.ResponseWriter, request *ht
 		json.Unmarshal(body, mp)
 
 		build := api.Build{
-			ProjectId: mp.ProjectID,
-			Steps:     []api.BuildStep{},
+			//ProjectId: mp.ProjectID,
+			Project: api.Project{
+				Id:         int(mp.ProjectID),
+				Name:       "",
+				PrivateKey: "",
+				CloneURL:   "",
+			},
+			Steps: []api.BuildStep{},
 		}
 
 		for _, v := range mp.Steps {
@@ -118,7 +124,7 @@ func (bc *BuildController) BindingBuildStepToNode(response http.ResponseWriter, 
 	}
 }
 
-func (bc *BuildController) GetBuild(response http.ResponseWriter, request *http.Request) {
+func (bc *BuildController) getBuild(response http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
 		buildService := BuildService{}
 
@@ -225,6 +231,14 @@ func (bc *BuildController) TailLogStep(w http.ResponseWriter, request *http.Requ
 	}
 }
 
+func (bc *BuildController) Handle(writer http.ResponseWriter, request *http.Request) {
+	if request.Method == http.MethodGet {
+		bc.getBuild(writer, request)
+	} else if request.Method == http.MethodPost {
+		bc.createBuild(writer, request)
+	}
+}
+
 type buildInput struct {
 	ProjectID int64 `json:"projectId"`
 	Steps     []struct {
@@ -237,4 +251,43 @@ type buildInput struct {
 type buildStepStatus struct {
 	StepId int
 	Status string
+}
+
+func (bc *BuildController) HandleBuildStep(response http.ResponseWriter, request *http.Request) {
+	if request.Method == "POST" {
+		buildService := BuildService{}
+
+		defer request.Body.Close()
+		body, _ := ioutil.ReadAll(request.Body)
+
+		var bs []api.BuildStep
+		json.Unmarshal(body, &bs)
+
+		//build := api.Build{
+		//	//ProjectId: mp.ProjectID,
+		//	Project: api.Project{
+		//		Id:         int(mp.ProjectID),
+		//		Name:       "",
+		//		PrivateKey: "",
+		//		CloneURL:   "",
+		//	},
+		//	Steps: []api.BuildStep{},
+		//}
+		//
+		//for _, v := range mp.Steps {
+		//	st := api.BuildStep{
+		//		Image:    v.Image,
+		//		Name:     v.Name,
+		//		Commands: []api.BuildStepCommand{},
+		//	}
+		//	for _, c := range v.Commands {
+		//		st.Commands = append(st.Commands, api.BuildStepCommand{
+		//			Command: c,
+		//		})
+		//	}
+		//	build.Steps = append(build.Steps, st)
+		//}
+
+		buildService.CreateBuildSteps( bs)
+	}
 }

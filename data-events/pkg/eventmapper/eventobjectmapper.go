@@ -18,9 +18,12 @@ type BuildEventObjectMapper struct {
 func (mapper *BuildEventObjectMapper) Map(m map[string]interface{}) []byte {
 
 	build := api.Build{
-		Id:        int(m["id"].(float64)),
-		ProjectId: int64(m["project_id"].(float64)),
-		Status:    string(m["status"].(string)),
+		Id: int(m["id"].(float64)),
+		//ProjectId: int64(m["project_id"].(float64)),
+		Project: api.Project{
+			Id: int(m["project_id"].(float64)),
+		},
+		Status: string(m["status"].(string)),
 		//CreatedTs: commons.ParseDBTime(m["created_ts"]),
 		//EndTs:     commons.ParseDBTime(m["end_ts"]),
 		//StartTs:   commons.ParseDBTime(m["start_ts"]),
@@ -35,8 +38,6 @@ func (mapper *BuildEventObjectMapper) Map(m map[string]interface{}) []byte {
 	if m["start_ts"] != nil {
 		build.StartTs = commons.ParseDBTime(m["start_ts"])
 	}
-
-
 
 	output, err := json.Marshal(build)
 	if err != nil {

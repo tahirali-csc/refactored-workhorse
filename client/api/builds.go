@@ -125,7 +125,7 @@ func (b *Builds) BindBuildStepToNode(binding api.BuildStepNodeBinding) {
 func (b *Builds) GetBuild(buildId int) (*api.Build, error) {
 	client := http.Client{}
 
-	res, err := client.Get(fmt.Sprintf("http://localhost:8081/getbuild?buildId=%d", buildId))
+	res, err := client.Get(fmt.Sprintf("http://localhost:8081/api/build?buildId=%d", buildId))
 	//log.Println(res)
 	if err != nil {
 		return nil, err
@@ -164,6 +164,26 @@ func (b *Builds) RunStep(stepId int) error {
 	client := http.Client{}
 
 	_, err := client.Post(fmt.Sprintf("http://localhost:8086/runstep?stepId=%d", stepId), "", nil)
+	//log.Println(res)
+	if err != nil {
+		return err
+	}
+
+	//dat, err := ioutil.ReadAll(res.Body)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	//build := &api.Build{}
+	//err = json.Unmarshal(dat, build)
+	return err
+}
+
+func (b *Builds) CreateBuildSteps(steps []api.BuildStep) error {
+	dt, _ := json.Marshal(steps)
+	client := http.Client{}
+
+	_, err := client.Post("http://localhost:8081/api/buildsteps", "application/json", bytes.NewReader(dt))
 	//log.Println(res)
 	if err != nil {
 		return err

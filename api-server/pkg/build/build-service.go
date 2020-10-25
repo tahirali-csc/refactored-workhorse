@@ -39,31 +39,31 @@ func (bs *BuildService) StartNewBuild(build api.Build) {
 	`
 
 	buildId := 0
-	tx.QueryRow(insertStmt, "Pending", build.ProjectId, time.Now()).Scan(&buildId)
-
-	for _, step := range build.Steps {
-		insertStmt1 := `
-		INSERT INTO build_steps (build_id, name, image,status,created_ts)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id
-		`
-
-		var buildStepId int
-		tx.QueryRow(insertStmt1, buildId, step.Name, step.Image, "Pending", time.Now()).Scan(&buildStepId)
-
-		for _, cmd := range step.Commands {
-			insertStmt2 := `
-			INSERT INTO build_steps_command (step_id, command)
-			VALUES ($1, $2)
-			`
-
-			_, err := tx.Exec(insertStmt2, buildStepId, cmd.Command)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-	}
+	tx.QueryRow(insertStmt, "Pending", build.Project.Id, time.Now()).Scan(&buildId)
+	//
+	//for _, step := range build.Steps {
+	//	insertStmt1 := `
+	//	INSERT INTO build_steps (build_id, name, image,status,created_ts)
+	//	VALUES ($1, $2, $3, $4, $5)
+	//	RETURNING id
+	//	`
+	//
+	//	var buildStepId int
+	//	tx.QueryRow(insertStmt1, buildId, step.Name, step.Image, "Pending", time.Now()).Scan(&buildStepId)
+	//
+	//	for _, cmd := range step.Commands {
+	//		insertStmt2 := `
+	//		INSERT INTO build_steps_command (step_id, command)
+	//		VALUES ($1, $2)
+	//		`
+	//
+	//		_, err := tx.Exec(insertStmt2, buildStepId, cmd.Command)
+	//		if err != nil {
+	//			panic(err)
+	//		}
+	//	}
+	//
+	//}
 
 	tx.Commit()
 
@@ -186,8 +186,9 @@ func (bs *BuildService) GetBuild(buildId int) (api.Build, error) {
 
 	err := db.Run(func(db *sql.DB) error {
 		selectStmt := `
-select * 
-from build b 
+select b.*, p.name, p.private_key, clone_url
+from build b
+inner join project p on b.project_id = p.id 
 where b.id = $1
 	`
 		row := db.QueryRow(selectStmt, buildId)
@@ -196,15 +197,24 @@ where b.id = $1
 		var projectId int64
 		var createdTs time.Time
 		var startTs, endTs sql.NullTime
+		var projectName string
+		var privateKey string
+		var cloneURL string
 
-		err := row.Scan(&id, &status, &projectId, &createdTs, &startTs, &endTs)
+		err := row.Scan(&id, &status, &projectId, &createdTs, &startTs, &endTs, &projectName, &privateKey, &cloneURL)
 		if err != nil {
 			return err
 		}
 
 		build.Id = id
 		build.Status = status
-		build.ProjectId = projectId
+		//build.ProjectId = projectId
+		build.Project = api.Project{
+			Id:         int(projectId),
+			Name:       projectName,
+			PrivateKey: privateKey,
+			CloneURL:   cloneURL,
+		}
 		build.CreatedTs = createdTs
 		if startTs.Valid {
 			build.StartTs = startTs.Time
@@ -274,7 +284,7 @@ func (bs *BuildService) GetStep(stepId int) (api.BuildStep, error) {
 
 	err := db.Run(func(db *sql.DB) error {
 		selectStmt := `
-select s.*, n.name, n.last_heart_beat 
+select s.*, n.name, n.last_heart_beat
 from build_steps s 
 left outer join node_info n on s.node_id = n.id
 where s.id = $1
@@ -388,5 +398,48 @@ func (bs *BuildService) PatchBuildStep(id int, input map[string]interface{}) {
 	})
 
 	log.Println(updateSql)
+
+}
+
+func (bs *BuildService) CreateBuildSteps(buildSteps []api.BuildStep) {
+
+	config := config.GetAppConfig()
+	var conninfo = fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable",
+		config.Database.Name, config.Database.User, config.Database.Password, config.Database.Host)
+
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+
+	for _, step := range buildSteps {
+		insertStmt1 := `
+		INSERT INTO build_steps (build_id, name, image,status,created_ts)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
+		`
+
+		var buildStepId int
+		tx.QueryRow(insertStmt1, step.BuildId, step.Name, step.Image, "Pending", time.Now()).Scan(&buildStepId)
+
+		for _, cmd := range step.Commands {
+			insertStmt2 := `
+			INSERT INTO build_steps_command (step_id, command)
+			VALUES ($1, $2)
+			`
+
+			_, err := tx.Exec(insertStmt2, buildStepId, cmd.Command)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+	}
+
+	tx.Commit()
 
 }
