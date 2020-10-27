@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/workhorse/api"
 	engine2 "github.com/workhorse/worker/pkg/engine"
+
 	"github.com/workhorse/worker/pkg/logstorage"
 	"io/ioutil"
 )

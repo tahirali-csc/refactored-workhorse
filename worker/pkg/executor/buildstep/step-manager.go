@@ -63,7 +63,7 @@ func (manager *StepManager) Run(stepId int) {
 	//b.UpdateBuildStep(stepId, "Starting")
 	b.UpdateBuildStep(buildStep)
 
-
+//api3.LogStorageProperties{}
 	buildStep.LogInfo = make(api2.LogStorageProperties)
 	buildStep.LogInfo["type"] = "file"
 	buildStep.LogInfo["path"] = tempStepLogFile.Name()

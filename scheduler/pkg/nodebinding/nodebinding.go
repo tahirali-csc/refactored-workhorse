@@ -4,8 +4,8 @@ import (
 	"github.com/workhorse/api"
 	"log"
 
-	coreapi "github.com/workhorse/api"
-	client "github.com/workhorse/client/api"
+	coreapi "github.com/workflow/api"
+	client "github.com/workflow/client/api"
 )
 
 func BindBuildToNode(build *coreapi.Build, node api.NodeInfo) {

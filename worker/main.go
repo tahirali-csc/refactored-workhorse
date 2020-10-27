@@ -28,8 +28,15 @@ func main() {
 
 }
 
-//func main1(){
-//	err := gitClone("/Users/tahir/workspace/git-tutorial")
+//func main(){
+//	tempDir, err := ioutil.TempDir("", "app")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	log.Println(tempDir)
+//
+//	err = executor.GitClone2(tempDir)
 //	if err != nil {
 //		log.Println(err)
 //	}

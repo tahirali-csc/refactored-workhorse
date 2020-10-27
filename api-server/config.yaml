@@ -1,5 +1,5 @@
 database:
-  name: workhorse
+  name: workflow
   user: dev
   password: dev
   host: localhost

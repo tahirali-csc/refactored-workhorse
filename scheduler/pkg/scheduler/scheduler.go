@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"github.com/workhorse/api"
-	client2 "github.com/workhorse/client/api"
+	client2 "github.com/workflow/client/api"
 	"github.com/workhorse/client/pkg/client"
 	"github.com/workhorse/scheduler/pkg/nodebinding"
 	"github.com/workhorse/scheduler/pkg/schedulingalgos/buildscheduling"

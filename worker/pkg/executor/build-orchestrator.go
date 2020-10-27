@@ -2,7 +2,6 @@ package executor
 
 import (
 	api2 "github.com/workhorse/api"
-	coreapi "github.com/workhorse/api"
 	"github.com/workhorse/client/api"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -12,15 +11,15 @@ import (
 )
 
 type BuildOrchestrator struct {
-	buildBindingChan chan *coreapi.BuildNodeBinding
-	buildStepEvents  map[int]chan *coreapi.BuildStep
+	buildBindingChan chan *api2.BuildNodeBinding
+	buildStepEvents  map[int]chan *api2.BuildStep
 	buildStepMutex   sync.RWMutex
 }
 
 func NewBuildOrchestrator() *BuildOrchestrator {
 	return &BuildOrchestrator{
-		buildBindingChan: make(chan *coreapi.BuildNodeBinding),
-		buildStepEvents:  make(map[int]chan *coreapi.BuildStep),
+		buildBindingChan: make(chan *api2.BuildNodeBinding),
+		buildStepEvents:  make(map[int]chan *api2.BuildStep),
 		buildStepMutex:   sync.RWMutex{},
 	}
 }
@@ -50,7 +49,7 @@ type buildFile struct {
 
 func (orchestrator *BuildOrchestrator) RunBuild(buildId int) {
 	orchestrator.buildStepMutex.Lock()
-	orchestrator.buildStepEvents[buildId] = make(chan *coreapi.BuildStep)
+	orchestrator.buildStepEvents[buildId] = make(chan *api2.BuildStep)
 	orchestrator.buildStepMutex.Unlock()
 
 	b := api.Builds{}
@@ -128,14 +127,14 @@ func (orchestrator *BuildOrchestrator) RunBuild(buildId int) {
 func (orchestrator *BuildOrchestrator) watchBuildNodeBinding() {
 	b := api.Builds{}
 	b.WatchBuildNodeBinding("http://localhost:8084/events", func(obj interface{}) {
-		orchestrator.buildBindingChan <- obj.(*coreapi.BuildNodeBinding)
+		orchestrator.buildBindingChan <- obj.(*api2.BuildNodeBinding)
 	})
 }
 
 func (orchestrator *BuildOrchestrator) watchBuildStepStatus() {
 	b := api.Builds{}
 	b.WatchSteps("http://localhost:8084/events", func(obj interface{}) {
-		buildStep := obj.(*coreapi.BuildStep)
+		buildStep := obj.(*api2.BuildStep)
 		orchestrator.buildStepMutex.RLock()
 		orchestrator.buildStepEvents[buildStep.BuildId] <- buildStep
 		orchestrator.buildStepMutex.RUnlock()

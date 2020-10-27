@@ -32,3 +32,30 @@ func GitClone(cloneDir string, project api.Project) error {
 
 	return nil
 }
+
+func GitClone2(cloneDir string) error {
+
+	publicKeys, err := ssh.NewPublicKeysFromFile("git", "/Users/tahir/.ssh/id_rsa", "")
+	//publicKeys, err := ssh.NewPublicKeys("git", []byte(project.PrivateKey), "")
+	publicKeys.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = git.PlainClone(cloneDir, false, &git.CloneOptions{
+		URL:      "git@github.com:tahirali-csc/hello-app.git",
+		Progress: os.Stdout,
+		Auth:     publicKeys,
+		Depth:    1,
+		SingleBranch : true,
+		//https://github.com/src-d/go-git/issues/553
+		ReferenceName: "refs/heads/branch-1",
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
